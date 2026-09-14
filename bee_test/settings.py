@@ -1,8 +1,12 @@
 import os
-import dj_database_url
-
 from pathlib import Path
 
+import dj_database_url
+
+
+# =========================================================
+# BASE
+# =========================================================
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -54,6 +58,10 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+
+    # Раздача CSS / JS / изображений на Render
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -167,6 +175,21 @@ STATICFILES_DIRS = [
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
+# WhiteNoise для production
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+
+    "staticfiles": {
+        "BACKEND": (
+            "whitenoise.storage."
+            "CompressedManifestStaticFilesStorage"
+        ),
+    },
+}
+
+
 # =========================================================
 # MEDIA FILES
 # =========================================================
@@ -177,12 +200,22 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 
 # =========================================================
-# AUTHENTICATION
+# DJANGO
 # =========================================================
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+
+# =========================================================
+# CUSTOM USER
+# =========================================================
+
 AUTH_USER_MODEL = "accounts.User"
+
+
+# =========================================================
+# LOGIN / LOGOUT
+# =========================================================
 
 LOGIN_URL = "login"
 
