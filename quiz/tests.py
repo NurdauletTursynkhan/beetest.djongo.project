@@ -41,14 +41,15 @@ class SaveTestAnswerTests(TestCase):
         )
 
         self.assertEqual(first_response.status_code, 200)
-        self.assertJSONEqual(first_response.content.decode(), {"ok": True})
+        self.assertEqual(first_response.json()["ok"], True)
+        self.assertEqual(first_response.json()["selected"], "B")
 
         second_response = self.client.post(
             reverse("save_test_answer"),
             {"question_id": self.question.id, "answer": "C"},
         )
 
-        self.assertEqual(second_response.status_code, 409)
-        self.assertEqual(second_response.json()["locked"], True)
-        self.assertEqual(second_response.json()["selected"], "B")
-        self.assertEqual(self.client.session["test_answers"][str(self.question.id)], "B")
+        self.assertEqual(second_response.status_code, 200)
+        self.assertEqual(second_response.json()["ok"], True)
+        self.assertEqual(second_response.json()["selected"], "C")
+        self.assertEqual(self.client.session["test_answers"][str(self.question.id)], "C")

@@ -350,7 +350,7 @@ def finish_test(request):
     answers = dict(attempt.answers if attempt else request.session.get("test_answers", {}))
     for question_id in ids:
         posted_answer = request.POST.get(f"question_{question_id}", "")
-        if posted_answer in dict(Question.ANSWER_CHOICES) and str(question_id) not in answers:
+        if posted_answer in dict(Question.ANSWER_CHOICES):
             answers[str(question_id)] = posted_answer
 
     if attempt:
@@ -384,20 +384,20 @@ def save_test_answer(request):
             return JsonResponse({"ok": False, "expired": True}, status=400)
 
         answers = dict(attempt.answers)
-        answers.setdefault(str(question_id), selected)
+        answers[str(question_id)] = selected
         attempt.answers = answers
         attempt.save(update_fields=["answers"])
-        return JsonResponse({"ok": True})
+        return JsonResponse({"ok": True, "selected": selected})
 
     ids = request.session.get("test_question_ids", [])
     if question_id not in ids:
         return JsonResponse({"ok": False}, status=400)
 
     answers = dict(request.session.get("test_answers", {}))
-    answers.setdefault(str(question_id), selected)
+    answers[str(question_id)] = selected
     request.session["test_answers"] = answers
     request.session.modified = True
-    return JsonResponse({"ok": True})
+    return JsonResponse({"ok": True, "selected": selected})
 
 
 def rating(request):
