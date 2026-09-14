@@ -6,6 +6,11 @@
         <div class="eyebrow">ОНЛАЙН-ПЛАТФОРМА</div>
         <h1>Проверь свои знания.<br><span>Выбери тему или общий тест.</span></h1>
         <p>Создавай темы и вопросы, проходи тест до {{ test_limit }} вопросов и сразу смотри ошибки, правильные ответы и оценку.</p>
+        <div class="hero-badges">
+            <span>⚡ Быстрый старт</span>
+            <span>📊 Результаты сразу</span>
+            <span>🏆 Рейтинг участников</span>
+        </div>
         <div class="hero-actions">
             <a class="btn" href="{% url 'start_test' %}">Начать общий тест <span>→</span></a>
             <a class="btn btn-outline" href="{% url 'topics' %}">Выбрать тему</a>
@@ -20,6 +25,24 @@
         <div class="hero-card-top"><span>ТЕСТ</span><strong>{{ test_limit }}</strong></div>
         <div class="big-check">✓</div>
         <div class="hero-card-bottom">максимум вопросов<br><b>Если вопросов меньше, тест всё равно запускается</b></div>
+    </div>
+</section>
+
+<section class="public-features">
+    <div class="feature-card">
+        <div class="feature-icon">01</div>
+        <h3>Готовые темы</h3>
+        <p>Выбирай нужный раздел и проходи тест в один клик.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">02</div>
+        <h3>Мгновенная обратная связь</h3>
+        <p>Сразу видишь правильные и неправильные ответы после прохождения.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">03</div>
+        <h3>Лидерборд</h3>
+        <p>Следи за своим результатом и сравнивай с другими участниками.</p>
     </div>
 </section>
 
