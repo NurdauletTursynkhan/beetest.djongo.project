@@ -7,9 +7,9 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# =========================
+# =========================================================
 # SECURITY
-# =========================
+# =========================================================
 
 SECRET_KEY = os.environ.get(
     "SECRET_KEY",
@@ -18,15 +18,22 @@ SECRET_KEY = os.environ.get(
 
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = os.environ.get(
-    "ALLOWED_HOSTS",
-    "localhost,127.0.0.1"
-).split(",")
+
+ALLOWED_HOSTS = [
+    "beetest-djongo-project.onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
 
 
-# =========================
+CSRF_TRUSTED_ORIGINS = [
+    "https://beetest-djongo-project.onrender.com",
+]
+
+
+# =========================================================
 # APPLICATIONS
-# =========================
+# =========================================================
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -41,9 +48,9 @@ INSTALLED_APPS = [
 ]
 
 
-# =========================
+# =========================================================
 # MIDDLEWARE
-# =========================
+# =========================================================
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -56,24 +63,29 @@ MIDDLEWARE = [
 ]
 
 
-# =========================
+# =========================================================
 # URL / WSGI
-# =========================
+# =========================================================
 
 ROOT_URLCONF = "bee_test.urls"
 
 WSGI_APPLICATION = "bee_test.wsgi.application"
 
 
-# =========================
+# =========================================================
 # TEMPLATES
-# =========================
+# =========================================================
 
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+
+        "DIRS": [
+            BASE_DIR / "templates",
+        ],
+
         "APP_DIRS": True,
+
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
@@ -85,9 +97,9 @@ TEMPLATES = [
 ]
 
 
-# =========================
+# =========================================================
 # DATABASE
-# =========================
+# =========================================================
 
 DATABASES = {
     "default": dj_database_url.config(
@@ -97,29 +109,41 @@ DATABASES = {
 }
 
 
-# =========================
+# =========================================================
 # PASSWORD VALIDATION
-# =========================
+# =========================================================
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "UserAttributeSimilarityValidator"
+        ),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "MinimumLengthValidator"
+        ),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "CommonPasswordValidator"
+        ),
     },
     {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"
+        "NAME": (
+            "django.contrib.auth.password_validation."
+            "NumericPasswordValidator"
+        ),
     },
 ]
 
 
-# =========================
+# =========================================================
 # LANGUAGE / TIME
-# =========================
+# =========================================================
 
 LANGUAGE_CODE = "ru-ru"
 
@@ -130,31 +154,31 @@ USE_I18N = True
 USE_TZ = True
 
 
-# =========================
+# =========================================================
 # STATIC FILES
-# =========================
+# =========================================================
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 
 STATICFILES_DIRS = [
-    BASE_DIR / "static"
+    BASE_DIR / "static",
 ]
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
-# =========================
+# =========================================================
 # MEDIA FILES
-# =========================
+# =========================================================
 
-MEDIA_URL = "media/"
+MEDIA_URL = "/media/"
 
 MEDIA_ROOT = BASE_DIR / "media"
 
 
-# =========================
-# AUTH
-# =========================
+# =========================================================
+# AUTHENTICATION
+# =========================================================
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
