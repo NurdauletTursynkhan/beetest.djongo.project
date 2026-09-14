@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Профиль — BEE TEST{% endblock %}
+{% block content %}
+<div class="profile-head">
+    <div class="avatar large">{{ user.first_name|first|default:"U" }}</div>
+    <div>
+        <div class="eyebrow">МОЙ ПРОФИЛЬ</div>
+        <h1>{{ user.full_name }}</h1>
+        <p>{{ user.email }}</p>
+    </div>
+    <a class="btn btn-outline" href="{% url 'profile_edit' %}">Редактировать</a>
+</div>
+
+<div class="stats-grid">
+    <div class="stat"><span>ВОПРОСОВ</span><b>{{ my_questions }}</b></div>
+    <div class="stat"><span>ТЕСТОВ</span><b>{{ tests_count }}</b></div>
+    <div class="stat"><span>БАЛЛОВ</span><b>{{ total_points }}</b></div>
+</div>
+
+<div class="profile-links">
+    <a href="{% url 'password_change' %}">Изменить пароль →</a>
+    {% if user.is_superuser %}<a href="/admin/">Открыть админку →</a>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Редактировать профиль{% endblock %}
+{% block content %}
+<div class="form-page narrow">
+<div class="form-intro"><div class="eyebrow">ПРОФИЛЬ</div><h1>Редактировать данные</h1></div>
+<form method="post" class="form-card">
+{% csrf_token %}
+{% for field in form %}
+<label>{{ field.label }}</label>{{ field }}{{ field.errors }}
+{% endfor %}
+<button class="btn full" type="submit">Сохранить →</button>
+</form>
+</div>
+{% endblock %}

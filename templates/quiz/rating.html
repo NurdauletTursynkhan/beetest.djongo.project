@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Рейтинг — BEE TEST{% endblock %}
+{% block content %}
+<div class="section-head">
+    <div>
+        <div class="eyebrow">ТОП УЧАСТНИКОВ</div>
+        <h1>Рейтинг</h1>
+        <p>Каждый правильный ответ = 1 балл.</p>
+    </div>
+</div>
+<div class="rating-card">
+{% for person in users %}
+    <div class="rating-row">
+        <div class="rank">{{ forloop.counter }}</div>
+        <div class="avatar">{{ person.user__first_name|first|default:"U" }}</div>
+        <div class="person">
+            <strong>{{ person.user__first_name }} {{ person.user__last_name }}</strong>
+            <small>{{ person.user__email }}</small>
+        </div>
+        <div class="points">{{ person.total_score }} <span>баллов</span></div>
+    </div>
+{% empty %}
+    <div class="empty">Пока никто не прошёл тест.</div>
+{% endfor %}
+</div>
+{% endblock %}

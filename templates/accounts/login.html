@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Вход — BEE TEST{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+<form method="post" class="form-card auth-card">
+    {% csrf_token %}
+    <div class="eyebrow">BEE TEST</div>
+    <h1>С возвращением!</h1>
+    <p>Войдите, чтобы создавать вопросы и сохранять результаты.</p>
+    {{ form.non_field_errors }}
+    {% for field in form %}
+        <label>{{ field.label }}</label>
+        {{ field }}
+        {{ field.errors }}
+    {% endfor %}
+    <button class="btn full" type="submit">Войти →</button>
+    <p class="auth-bottom">Нет аккаунта? <a href="{% url 'register' %}">Регистрация</a></p>
+</form>
+</div>
+{% endblock %}

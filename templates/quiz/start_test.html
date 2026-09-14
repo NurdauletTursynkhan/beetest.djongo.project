@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}Тест - BEE TEST{% endblock %}
+{% block content %}
+<div class="test-header">
+    <div>
+        <div class="eyebrow">{% if topic %}ТЕМА{% else %}ОБЩИЙ ТЕСТ{% endif %}</div>
+        <h1>{% if topic %}{{ topic.title }}{% else %}Случайный тест{% endif %}</h1>
+        <p>В тесте {{ selected_count }} из максимум {{ test_limit }} вопросов. На прохождение даётся {{ test_minutes }} минут.</p>
+    </div>
+    <div class="test-side">
+        <div class="timer-box">
+            <span>Осталось</span>
+            <strong id="test-timer">50:00</strong>
+        </div>
+        <div class="test-badge">{{ selected_count }}<br><small>ВОПРОСОВ</small></div>
+    </div>
+</div>
+
+<nav class="question-jump" aria-label="Навигация по вопросам">
+{% for question in questions %}
+    <a href="#question-{{ forloop.counter }}" id="jump-{{ forloop.counter }}" class="{% if question.selected_answer %}is-answered {% if question.selected_answer == question.correct_answer %}is-correct{% else %}is-wrong{% endif %}{% endif %}">{{ forloop.counter }}</a>
+{% endfor %}
+</nav>
+
+<form method="post" action="{% url 'finish_test' %}" class="test-form" id="test-form">
+{% csrf_token %}
+{% for question in questions %}
+    <article class="test-question {% if question.selected_answer %}is-locked{% endif %}" id="question-{{ forloop.counter }}" data-number="{{ forloop.counter }}" data-question-id="{{ question.id }}" data-correct="{{ question.correct_answer }}" data-selected="{{ question.selected_answer }}" data-locked="{% if question.selected_answer %}true{% else %}false{% endif %}">
+        <div class="test-number">{{ forloop.counter|stringformat:"02d" }}</div>
+        <div class="test-body">
+            <div class="topic-pill">{{ question.topic.title|default:"Без темы" }}</div>
+            <h3>{{ question.text }}</h3>
+            {% if question.image %}
+                <img class="question-image" src="{{ question.image.url }}" alt="">
+            {% endif %}
+            <div class="radio-options live-options">
+                <label data-answer="A"><input type="radio" name="question_{{ question.id }}" value="A"> <span>А</span>{{ question.option_a }}</label>
+                <label data-answer="B"><input type="radio" name="question_{{ question.id }}" value="B"> <span>Б</span>{{ question.option_b }}</label>
+                <label data-answer="C"><input type="radio" name="question_{{ question.id }}" value="C"> <span>В</span>{{ question.option_c }}</label>
+                <label data-answer="D"><input type="radio" name="question_{{ question.id }}" value="D"> <span>Г</span>{{ question.option_d }}</label>
+            </div>
+            <div class="answer-feedback" aria-live="polite"></div>
+        </div>
+    </article>
+{% endfor %}
+<button class="btn full finish-btn" type="submit">Завершить тест →</button>
+</form>
+
+<script>
+(() => {
+    const form = document.getElementById("test-form");
+    const timer = document.getElementById("test-timer");
+    const duration = Number("{{ test_duration_seconds|default:3000 }}");
+    const csrfToken = "{{ csrf_token }}";
+    const saveAnswerUrl = "{% url 'save_test_answer' %}";
+    const deadline = Date.now() + duration * 1000;
+    let submitted = false;
+
+    function saveAnswer(questionId, answer) {
+        const data = new URLSearchParams();
+        data.append("question_id", questionId);
+        data.append("answer", answer);
+
+        fetch(saveAnswerUrl, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrfToken,
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: data,
+            keepalive: true,
+        });
+    }
+
+    function submitByTimer() {
+        if (submitted) return;
+        submitted = true;
+        form.submit();
+    }
+
+    function renderTimer() {
+        const left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+        const minutes = Math.floor(left / 60).toString().padStart(2, "0");
+        const seconds = (left % 60).toString().padStart(2, "0");
+        timer.textContent = `${minutes}:${seconds}`;
+        timer.classList.toggle("is-danger", left <= 60);
+        if (left <= 0) {
+            submitByTimer();
+        }
+    }
+
+    document.querySelectorAll(".test-question").forEach((question) => {
+        const correct = question.dataset.correct;
+        const number = question.dataset.number;
+        const questionId = question.dataset.questionId;
+        const savedAnswer = question.dataset.selected;
+        const feedback = question.querySelector(".answer-feedback");
+        const labels = question.querySelectorAll(".live-options label");
+        const inputs = question.querySelectorAll(".live-options input");
+
+        if (savedAnswer) {
+            labels.forEach((item) => {
+                const input = item.querySelector("input");
+                if (item.dataset.answer === correct) {
+                    item.classList.add("correct-visible");
+                }
+                if (item.dataset.answer === savedAnswer) {
+                    item.classList.add(savedAnswer === correct ? "selected-correct" : "selected-wrong");
+                    input.checked = true;
+                } else {
+                    input.disabled = true;
+                }
+            });
+        }
+
+        labels.forEach((label) => {
+            label.addEventListener("click", () => {
+                if (question.dataset.locked === "true") {
+                    return;
+                }
+
+                const selected = label.dataset.answer;
+                labels.forEach((item) => {
+                    item.classList.remove("selected-correct", "selected-wrong", "correct-visible");
+                    if (item.dataset.answer === correct) {
+                        item.classList.add("correct-visible");
+                    }
+                });
+
+                label.classList.add(selected === correct ? "selected-correct" : "selected-wrong");
+                label.querySelector("input").checked = true;
+                question.dataset.locked = "true";
+                question.classList.add("is-locked");
+                inputs.forEach((input) => {
+                    input.disabled = input.value !== selected;
+                });
+                saveAnswer(questionId, selected);
+                feedback.textContent = selected === correct
+                    ? "Правильно"
+                    : "Неправильно. Правильный ответ подсвечен зелёным.";
+                feedback.className = `answer-feedback ${selected === correct ? "is-good" : "is-bad"}`;
+
+                const jump = document.getElementById(`jump-${number}`);
+                if (jump) {
+                    jump.classList.add("is-answered");
+                    jump.classList.toggle("is-correct", selected === correct);
+                    jump.classList.toggle("is-wrong", selected !== correct);
+                }
+            });
+        });
+    });
+
+    form.addEventListener("submit", () => {
+        submitted = true;
+    });
+
+    renderTimer();
+    setInterval(renderTimer, 1000);
+})();
+</script>
+{% endblock %}

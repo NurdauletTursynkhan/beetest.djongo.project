@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Темы - BEE TEST{% endblock %}
+{% block content %}
+<div class="section-head no-top">
+    <div>
+        <div class="eyebrow">СТРАНИЦА ТЕМ</div>
+        <h1>Темы тестов</h1>
+        <p>Любой пользователь может добавить тему. Удалить можно только свою тему, админ может удалить любую.</p>
+    </div>
+    {% if user.is_authenticated %}
+        <a class="btn" href="{% url 'topic_create' %}">+ Добавить тему</a>
+    {% else %}
+        <a class="btn" href="{% url 'login' %}">Войти</a>
+    {% endif %}
+</div>
+
+<div class="topic-grid">
+{% for topic in topics %}
+    <article class="topic-card">
+        <div class="topic-meta">
+            <span>{{ topic.question_count }} вопросов</span>
+            <small>{{ topic.author.full_name }}</small>
+        </div>
+        <h3>{{ topic.title }}</h3>
+        {% if topic.description %}<p>{{ topic.description }}</p>{% endif %}
+        <div class="card-actions">
+            <a href="{% url 'start_topic_test' topic.pk %}">Сдать тест</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'question_create' %}?topic={{ topic.pk }}">Добавить вопрос</a>
+            {% endif %}
+            {% if user.is_authenticated and user == topic.author or user.is_superuser %}
+                <a class="danger-text" href="{% url 'topic_delete' topic.pk %}">Удалить</a>
+            {% endif %}
+        </div>
+    </article>
+{% empty %}
+    <div class="empty">
+        <div class="big-check">?</div>
+        <h3>Пока нет тем</h3>
+        <p>Создайте первую тему для вопросов.</p>
+    </div>
+{% endfor %}
+</div>
+{% endblock %}

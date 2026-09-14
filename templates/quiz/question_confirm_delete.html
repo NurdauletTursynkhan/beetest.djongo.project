@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Удаление - BEE TEST{% endblock %}
+{% block content %}
+<div class="center-card">
+    <div class="eyebrow">ПОДТВЕРЖДЕНИЕ</div>
+    <h1>Удалить вопрос?</h1>
+    <p>{{ question.text }}</p>
+    <form method="post">
+        {% csrf_token %}
+        <button class="btn danger" type="submit">Да, удалить</button>
+        <a class="btn btn-outline" href="{% url 'home' %}">Отмена</a>
+    </form>
+</div>
+{% endblock %}

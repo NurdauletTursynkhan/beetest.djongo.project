@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Главная - BEE TEST{% endblock %}
+{% block content %}
+<section class="hero">
+    <div>
+        <div class="eyebrow">ОНЛАЙН-ПЛАТФОРМА</div>
+        <h1>Проверь свои знания.<br><span>Выбери тему или общий тест.</span></h1>
+        <p>Создавай темы и вопросы, проходи тест до {{ test_limit }} вопросов и сразу смотри ошибки, правильные ответы и оценку.</p>
+        <div class="hero-actions">
+            <a class="btn" href="{% url 'start_test' %}">Начать общий тест <span>→</span></a>
+            <a class="btn btn-outline" href="{% url 'topics' %}">Выбрать тему</a>
+            {% if user.is_authenticated %}
+                <a class="btn btn-outline" href="{% url 'question_create' %}">+ Создать вопрос</a>
+            {% else %}
+                <a class="btn btn-outline" href="{% url 'register' %}">Создать аккаунт</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="hero-card">
+        <div class="hero-card-top"><span>ТЕСТ</span><strong>{{ test_limit }}</strong></div>
+        <div class="big-check">✓</div>
+        <div class="hero-card-bottom">максимум вопросов<br><b>Если вопросов меньше, тест всё равно запускается</b></div>
+    </div>
+</section>
+
+<div class="section-head">
+    <div>
+        <div class="eyebrow">ТЕМЫ</div>
+        <h2>Выберите тему для теста</h2>
+    </div>
+    {% if user.is_authenticated %}
+        <a class="btn btn-small" href="{% url 'topic_create' %}">+ Добавить тему</a>
+    {% endif %}
+</div>
+
+<div class="topic-grid">
+{% for topic in topics %}
+    <article class="topic-card">
+        <div class="topic-meta">
+            <span>{{ topic.question_count }} вопросов</span>
+            <small>{{ topic.author.full_name }}</small>
+        </div>
+        <h3>{{ topic.title }}</h3>
+        {% if topic.description %}<p>{{ topic.description }}</p>{% endif %}
+        <div class="card-actions">
+            <a href="{% url 'start_topic_test' topic.pk %}">Сдать тест</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'question_create' %}?topic={{ topic.pk }}">Добавить вопрос</a>
+            {% endif %}
+            {% if user.is_authenticated and user == topic.author or user.is_superuser %}
+                <a class="danger-text" href="{% url 'topic_delete' topic.pk %}">Удалить</a>
+            {% endif %}
+        </div>
+    </article>
+{% empty %}
+    <div class="empty">
+        <div class="big-check">?</div>
+        <h3>Пока нет тем</h3>
+        <p>Добавьте первую тему, чтобы пользователи могли выбирать тест.</p>
+    </div>
+{% endfor %}
+</div>
+
+<div class="section-head">
+    <div>
+        <div class="eyebrow">БАЗА ВОПРОСОВ</div>
+        <h2>Опубликованные вопросы</h2>
+    </div>
+    <span class="count-badge">{{ question_count }} вопросов</span>
+</div>
+
+<div class="question-grid">
+{% for question in questions %}
+    <article class="question-card">
+        <div class="question-top">
+            <span class="number">#{{ forloop.counter }}</span>
+            <span class="author">{{ question.author.full_name }}</span>
+        </div>
+        <div class="topic-pill">{{ question.topic.title|default:"Без темы" }}</div>
+        <h3>{{ question.text }}</h3>
+        {% if question.image %}
+            <img class="question-image compact" src="{{ question.image.url }}" alt="">
+        {% endif %}
+        <div class="options">
+            <div><b>А</b>{{ question.option_a }}</div>
+            <div><b>Б</b>{{ question.option_b }}</div>
+            <div><b>В</b>{{ question.option_c }}</div>
+            <div><b>Г</b>{{ question.option_d }}</div>
+        </div>
+        {% if user.is_authenticated and user == question.author or user.is_superuser %}
+        <div class="card-actions">
+            <a href="{% url 'question_edit' question.pk %}">Редактировать</a>
+            <a class="danger-text" href="{% url 'question_delete' question.pk %}">Удалить</a>
+        </div>
+        {% endif %}
+    </article>
+{% empty %}
+    <div class="empty">
+        <div class="big-check">?</div>
+        <h3>Пока нет вопросов</h3>
+        <p>Станьте первым, кто добавит вопрос.</p>
+    </div>
+{% endfor %}
+</div>
+{% endblock %}

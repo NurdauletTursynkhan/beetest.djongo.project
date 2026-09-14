@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Добавить тему - BEE TEST{% endblock %}
+{% block content %}
+<div class="form-page narrow">
+    <div class="form-intro">
+        <div class="eyebrow">BEE TEST</div>
+        <h1>Добавить тему</h1>
+        <p>После создания темы её можно будет выбрать при добавлении вопроса и при прохождении теста.</p>
+    </div>
+
+    <form method="post" class="form-card">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+
+        <label>{{ form.title.label }}</label>
+        {{ form.title }}
+        {{ form.title.errors }}
+
+        <label>{{ form.description.label }}</label>
+        {{ form.description }}
+        {{ form.description.errors }}
+
+        <button class="btn full" type="submit">Сохранить тему →</button>
+    </form>
+</div>
+{% endblock %}

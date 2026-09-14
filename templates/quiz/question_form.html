@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} - BEE TEST{% endblock %}
+{% block content %}
+<div class="form-page">
+    <div class="form-intro">
+        <div class="eyebrow">BEE TEST</div>
+        <h1>{{ title }}</h1>
+        <p>Выберите тему, заполните вопрос и четыре варианта ответа. После публикации вопрос появится на главной странице и в тесте выбранной темы.</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="form-card">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div class="errors">{{ form.non_field_errors }}</div>{% endif %}
+
+        <label>{{ form.topic.label }}</label>
+        {{ form.topic }}
+        {{ form.topic.errors }}
+        <div class="field-help">
+            Нет нужной темы? <a href="{% url 'topic_create' %}">Добавить тему</a>
+        </div>
+
+        <label>{{ form.text.label }}</label>
+        {{ form.text }}
+        {{ form.text.errors }}
+
+        <label>{{ form.image.label }}</label>
+        {{ form.image }}
+        {{ form.image.errors }}
+
+        <div class="answers-title">ВАРИАНТЫ ОТВЕТА</div>
+        <div class="answer-grid">
+            <div class="answer-input"><span>А</span>{{ form.option_a }}</div>
+            <div class="answer-input"><span>Б</span>{{ form.option_b }}</div>
+            <div class="answer-input"><span>В</span>{{ form.option_c }}</div>
+            <div class="answer-input"><span>Г</span>{{ form.option_d }}</div>
+        </div>
+
+        <label>{{ form.correct_answer.label }}</label>
+        {{ form.correct_answer }}
+        {{ form.correct_answer.errors }}
+        <div class="publish-row">
+            {{ form.is_published }}
+            <label for="{{ form.is_published.id_for_label }}">Опубликовать вопрос</label>
+        </div>
+
+        <button class="btn full" type="submit">{{ button }} →</button>
+    </form>
+</div>
+{% endblock %}
