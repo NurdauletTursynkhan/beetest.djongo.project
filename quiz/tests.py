@@ -49,7 +49,7 @@ class SaveTestAnswerTests(TestCase):
             {"question_id": self.question.id, "answer": "C"},
         )
 
-        self.assertEqual(second_response.status_code, 200)
-        self.assertEqual(second_response.json()["ok"], True)
-        self.assertEqual(second_response.json()["selected"], "C")
-        self.assertEqual(self.client.session["test_answers"][str(self.question.id)], "C")
+        self.assertEqual(second_response.status_code, 409)
+        self.assertEqual(second_response.json()["locked"], True)
+        self.assertEqual(second_response.json()["selected"], "B")
+        self.assertEqual(self.client.session["test_answers"][str(self.question.id)], "B")

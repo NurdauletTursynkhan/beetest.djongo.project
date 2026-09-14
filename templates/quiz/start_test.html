@@ -1,29 +1,6 @@
 {% extends "base.html" %}
 {% block title %}Тест - BEE TEST{% endblock %}
 {% block content %}
-<style>
-    .test-question {
-        display: none;
-    }
-    .test-question.is-active {
-        display: block;
-    }
-    .question-actions {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        margin-top: 24px;
-    }
-    .question-actions button {
-        min-width: 140px;
-    }
-    .question-action-hint {
-        font-size: 14px;
-        color: #667085;
-        margin-top: 10px;
-    }
-</style>
-
 <div class="test-header">
     <div>
         <div class="eyebrow">{% if topic %}ТЕМА{% else %}ОБЩИЙ ТЕСТ{% endif %}</div>
@@ -39,10 +16,16 @@
     </div>
 </div>
 
+<nav class="question-jump" aria-label="Навигация по вопросам">
+{% for question in questions %}
+    <a href="#question-{{ forloop.counter }}" id="jump-{{ forloop.counter }}" class="{% if question.selected_answer %}is-answered {% if question.selected_answer == question.correct_answer %}is-correct{% else %}is-wrong{% endif %}{% endif %}">{{ forloop.counter }}</a>
+{% endfor %}
+</nav>
+
 <form method="post" action="{% url 'finish_test' %}" class="test-form" id="test-form">
 {% csrf_token %}
 {% for question in questions %}
-    <article class="test-question {% if forloop.first %}is-active{% endif %}" id="question-{{ forloop.counter }}" data-number="{{ forloop.counter }}" data-question-id="{{ question.id }}" data-correct="{{ question.correct_answer }}" data-selected="{{ question.selected_answer|default:'' }}">
+    <article class="test-question {% if question.selected_answer %}is-locked{% endif %}" id="question-{{ forloop.counter }}" data-number="{{ forloop.counter }}" data-question-id="{{ question.id }}" data-correct="{{ question.correct_answer }}" data-selected="{{ question.selected_answer }}" data-locked="{% if question.selected_answer %}true{% else %}false{% endif %}">
         <div class="test-number">{{ forloop.counter|stringformat:"02d" }}</div>
         <div class="test-body">
             <div class="topic-pill">{{ question.topic.title|default:"Без темы" }}</div>
@@ -51,23 +34,16 @@
                 <img class="question-image" src="{{ question.image.url }}" alt="">
             {% endif %}
             <div class="radio-options live-options">
-                <label data-answer="A"><input type="radio" name="question_{{ question.id }}" value="A" {% if question.selected_answer == 'A' %}checked{% endif %}> <span>А</span>{{ question.option_a }}</label>
-                <label data-answer="B"><input type="radio" name="question_{{ question.id }}" value="B" {% if question.selected_answer == 'B' %}checked{% endif %}> <span>Б</span>{{ question.option_b }}</label>
-                <label data-answer="C"><input type="radio" name="question_{{ question.id }}" value="C" {% if question.selected_answer == 'C' %}checked{% endif %}> <span>В</span>{{ question.option_c }}</label>
-                <label data-answer="D"><input type="radio" name="question_{{ question.id }}" value="D" {% if question.selected_answer == 'D' %}checked{% endif %}> <span>Г</span>{{ question.option_d }}</label>
+                <label data-answer="A"><input type="radio" name="question_{{ question.id }}" value="A"> <span>А</span>{{ question.option_a }}</label>
+                <label data-answer="B"><input type="radio" name="question_{{ question.id }}" value="B"> <span>Б</span>{{ question.option_b }}</label>
+                <label data-answer="C"><input type="radio" name="question_{{ question.id }}" value="C"> <span>В</span>{{ question.option_c }}</label>
+                <label data-answer="D"><input type="radio" name="question_{{ question.id }}" value="D"> <span>Г</span>{{ question.option_d }}</label>
             </div>
             <div class="answer-feedback" aria-live="polite"></div>
-            <div class="question-actions">
-                <button type="button" class="btn secondary prev-btn" {% if forloop.first %}disabled{% endif %}>← Назад</button>
-                {% if forloop.last %}
-                    <button type="submit" class="btn full finish-btn">Завершить тест →</button>
-                {% else %}
-                    <button type="button" class="btn next-btn">Следующий →</button>
-                {% endif %}
-            </div>
         </div>
     </article>
 {% endfor %}
+<button class="btn full finish-btn" type="submit">Завершить тест →</button>
 </form>
 
 <script>
@@ -78,8 +54,6 @@
     const csrfToken = "{{ csrf_token }}";
     const saveAnswerUrl = "{% url 'save_test_answer' %}";
     const deadline = Date.now() + duration * 1000;
-    const questions = Array.from(document.querySelectorAll(".test-question"));
-    let currentIndex = 0;
     let submitted = false;
 
     function saveAnswer(questionId, answer) {
@@ -87,7 +61,7 @@
         data.append("question_id", questionId);
         data.append("answer", answer);
 
-        return fetch(saveAnswerUrl, {
+        fetch(saveAnswerUrl, {
             method: "POST",
             headers: {
                 "X-CSRFToken": csrfToken,
@@ -115,66 +89,36 @@
         }
     }
 
-    function setQuestionState(question, answer) {
+    document.querySelectorAll(".test-question").forEach((question) => {
         const correct = question.dataset.correct;
+        const number = question.dataset.number;
+        const questionId = question.dataset.questionId;
+        const savedAnswer = question.dataset.selected;
         const feedback = question.querySelector(".answer-feedback");
         const labels = question.querySelectorAll(".live-options label");
         const inputs = question.querySelectorAll(".live-options input");
 
-        labels.forEach((label) => {
-            const input = label.querySelector("input");
-            const isSelected = input.value === answer;
-            label.classList.toggle("selected-correct", isSelected && answer === correct);
-            label.classList.toggle("selected-wrong", isSelected && answer !== correct);
-            label.classList.toggle("correct-visible", label.dataset.answer === correct);
-            input.checked = isSelected;
-        });
-
-        if (answer) {
-            feedback.textContent = answer === correct
-                ? "Правильно"
-                : "Неправильно. Правильный ответ подсвечен зелёным.";
-            feedback.className = `answer-feedback ${answer === correct ? "is-good" : "is-bad"}`;
-        } else {
-            feedback.textContent = "";
-            feedback.className = "answer-feedback";
-        }
-    }
-
-    function showQuestion(index) {
-        currentIndex = Math.max(0, Math.min(index, questions.length - 1));
-        questions.forEach((question, i) => {
-            question.classList.toggle("is-active", i === currentIndex);
-        });
-
-        questions.forEach((question) => {
-            const prevBtn = question.querySelector(".prev-btn");
-            const nextBtn = question.querySelector(".next-btn");
-            const isActive = question === questions[currentIndex];
-
-            if (prevBtn) {
-                prevBtn.disabled = currentIndex === 0;
-            }
-
-            if (nextBtn) {
-                nextBtn.style.display = isActive ? "inline-block" : "none";
-            }
-        });
-    }
-
-    questions.forEach((question) => {
-        const correct = question.dataset.correct;
-        const questionId = question.dataset.questionId;
-        const savedAnswer = question.dataset.selected || "";
-        const labels = question.querySelectorAll(".live-options label");
-        const inputs = question.querySelectorAll(".live-options input");
-
         if (savedAnswer) {
-            setQuestionState(question, savedAnswer);
+            labels.forEach((item) => {
+                const input = item.querySelector("input");
+                if (item.dataset.answer === correct) {
+                    item.classList.add("correct-visible");
+                }
+                if (item.dataset.answer === savedAnswer) {
+                    item.classList.add(savedAnswer === correct ? "selected-correct" : "selected-wrong");
+                    input.checked = true;
+                } else {
+                    input.disabled = true;
+                }
+            });
         }
 
         labels.forEach((label) => {
             label.addEventListener("click", () => {
+                if (question.dataset.locked === "true") {
+                    return;
+                }
+
                 const selected = label.dataset.answer;
                 labels.forEach((item) => {
                     item.classList.remove("selected-correct", "selected-wrong", "correct-visible");
@@ -183,34 +127,33 @@
                     }
                 });
 
-                const input = label.querySelector("input");
-                input.checked = true;
-                question.dataset.selected = selected;
+                label.classList.add(selected === correct ? "selected-correct" : "selected-wrong");
+                label.querySelector("input").checked = true;
+                question.dataset.locked = "true";
+                question.classList.add("is-locked");
+                inputs.forEach((input) => {
+                    input.disabled = input.value !== selected;
+                });
                 saveAnswer(questionId, selected);
-                setQuestionState(question, selected);
+                feedback.textContent = selected === correct
+                    ? "Правильно"
+                    : "Неправильно. Правильный ответ подсвечен зелёным.";
+                feedback.className = `answer-feedback ${selected === correct ? "is-good" : "is-bad"}`;
+
+                const jump = document.getElementById(`jump-${number}`);
+                if (jump) {
+                    jump.classList.add("is-answered");
+                    jump.classList.toggle("is-correct", selected === correct);
+                    jump.classList.toggle("is-wrong", selected !== correct);
+                }
             });
         });
-
-        const prevBtn = question.querySelector(".prev-btn");
-        if (prevBtn) {
-            prevBtn.addEventListener("click", () => {
-                showQuestion(currentIndex - 1);
-            });
-        }
-
-        const nextBtn = question.querySelector(".next-btn");
-        if (nextBtn) {
-            nextBtn.addEventListener("click", () => {
-                showQuestion(currentIndex + 1);
-            });
-        }
     });
 
     form.addEventListener("submit", () => {
         submitted = true;
     });
 
-    showQuestion(0);
     renderTimer();
     setInterval(renderTimer, 1000);
 })();
